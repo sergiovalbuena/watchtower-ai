@@ -1,4 +1,5 @@
 "use client";
+import { ModeToggle } from "@/components/ModeToggle";
 import { Separator } from "@/components/ui/separator";
 import { useRef, useState } from "react";
 import Webcam from "react-webcam";
@@ -34,6 +35,7 @@ const HomePage = (props: Props) => {
           <div className="border-primary/5 border-2 max-w-xs flex flex-col gap-2 justify-between shadow-md rounded-md p-4">
             {/* top separator */}
             <div className="flex flex-col gap-2">
+              <ModeToggle />
               <Separator />
             </div>
             <div className="flex flex-col gap-2">
