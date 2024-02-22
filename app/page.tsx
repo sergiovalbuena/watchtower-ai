@@ -1,6 +1,8 @@
 "use client";
 import { ModeToggle } from "@/components/ModeToggle";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Camera, FlipHorizontal, Video } from "lucide-react";
 import { useRef, useState } from "react";
 import Webcam from "react-webcam";
 
@@ -12,6 +14,8 @@ const HomePage = (props: Props) => {
 
   //states
   const [mirrored, setMirrored] = useState<boolean>(false);
+  const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [autoRecordEnabled, setAutoRecordEnabled] = useState<boolean>(false);
 
   return (
     <main>
@@ -36,21 +40,79 @@ const HomePage = (props: Props) => {
             {/* top separator */}
             <div className="flex flex-col gap-2">
               <ModeToggle />
-              <Separator />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Separator />
+              <Button
+                variant={"outline"}
+                size={"icon"}
+                onClick={() => {
+                  setMirrored((prev) => !prev);
+                }}
+              >
+                <FlipHorizontal />
+              </Button>
 
-              <Separator />
+              <Separator className="my-2" />
+            </div>
+            {/* Middle Section */}
+
+            <div className="flex flex-col gap-2">
+              <Separator className="my-2" />
+              <Button
+                variant={"outline"}
+                size={"icon"}
+                onClick={userPromptScreenshot}
+              >
+                <Camera />
+              </Button>
+
+              <Button
+                variant={isRecording ? "destructive" : "outline"}
+                size={"icon"}
+                onClick={userPromptRecord}
+              >
+                <Video />
+              </Button>
+              <Button
+                variant={autoRecordEnabled ? "destructive" : "outline"}
+                size={"icon"}
+                onClick={toggleAutoRecord}
+              >
+                {autoRecordEnabled ? "Show animation" : <PersonStanding />}
+              </Button>
+
+              <Separator className="my-2" />
             </div>
             <div className="flex flex-col gap-2">
-              <Separator />
+              <Separator className="my-2" />
             </div>
           </div>
         </div>
       </div>
     </main>
   );
+
+  //handler functions
+  function userPromptScreenshot() {
+    //take picture
+    //save it to downloads
+  }
+
+  function userPromptRecord() {
+    //check if recording
+    //then stop recording
+    //and save to downloads
+    //if not recording
+    //start recording
+  }
+
+  function toggleAutoRecord() {
+    if (autoRecordEnabled) {
+      setAutoRecordEnabled(false);
+      //show toast to user to notify that auto record is disabled
+    } else {
+      setAutoRecordEnabled(true);
+      //show toast to user to notify that auto record is enabled
+    }
+  }
 };
 
 export default HomePage;
