@@ -1,10 +1,24 @@
 "use client";
 import { ModeToggle } from "@/components/ModeToggle";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { Camera, FlipHorizontal, Video } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import {
+  Camera,
+  FlipHorizontal,
+  PersonStanding,
+  Video,
+  Volume2,
+} from "lucide-react";
 import { useRef, useState } from "react";
+import { Rings } from "react-loader-spinner";
 import Webcam from "react-webcam";
+import { toast } from "sonner";
 
 type Props = {};
 
@@ -16,6 +30,7 @@ const HomePage = (props: Props) => {
   const [mirrored, setMirrored] = useState<boolean>(false);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [autoRecordEnabled, setAutoRecordEnabled] = useState<boolean>(false);
+  const [volume, setVolume] = useState<number>(0.8);
 
   return (
     <main>
@@ -76,13 +91,37 @@ const HomePage = (props: Props) => {
                 size={"icon"}
                 onClick={toggleAutoRecord}
               >
-                {autoRecordEnabled ? "Show animation" : <PersonStanding />}
+                {autoRecordEnabled ? (
+                  <Rings color="white" height={45} />
+                ) : (
+                  <PersonStanding />
+                )}
               </Button>
 
               <Separator className="my-2" />
             </div>
+            {/* Bottom Section */}
             <div className="flex flex-col gap-2">
               <Separator className="my-2" />
+              <Popover>
+                <PopoverTrigger>
+                  <Button variant={"outline"} size={"icon"}>
+                    <Volume2 />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent>
+                  <Slider
+                    max={1}
+                    min={0}
+                    step={0.2}
+                    defaultValue={[volume]}
+                    onValueCommit={(val) => {
+                      setVolume(val[0]);
+                      beep(val[0]);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </div>
@@ -108,8 +147,10 @@ const HomePage = (props: Props) => {
     if (autoRecordEnabled) {
       setAutoRecordEnabled(false);
       //show toast to user to notify that auto record is disabled
+      toast("Auto record disabled");
     } else {
       setAutoRecordEnabled(true);
+      toast("Auto record enabled");
       //show toast to user to notify that auto record is enabled
     }
   }
