@@ -18,10 +18,14 @@ import {
   Video,
   Volume2,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Rings } from "react-loader-spinner";
 import Webcam from "react-webcam";
 import { toast } from "sonner";
+import * as cocossd from "@tensorflow-models/coco-ssd";
+import "@tensorflow/tfjs-backend-cpu";
+import "@tensorflow/tfjs-backend-webgl";
+import { ObjectDetection } from "@tensorflow-models/coco-ssd";
 
 type Props = {};
 
@@ -34,6 +38,28 @@ const HomePage = (props: Props) => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [autoRecordEnabled, setAutoRecordEnabled] = useState<boolean>(false);
   const [volume, setVolume] = useState<number>(0.8);
+  const [model, setModel] = useState<ObjectDetection>();
+  const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    setLoading(true);
+    initModel();
+  }, []);
+
+  //loads model
+  //set it in a state var
+  async function initModel() {
+    const loadedModel: ObjectDetection = await cocossd.load({
+      base: "mobilenet_v2",
+    });
+    setModel(loadedModel);
+  }
+
+  useEffect(() => {
+    if (model) {
+      setLoading(false);
+    }
+  }, [model]);
 
   return (
     <main>
@@ -133,6 +159,11 @@ const HomePage = (props: Props) => {
           </div>
         </div>
       </div>
+      {loading && (
+        <div className="z-50 absolute w-full h-full flex items-center justify-center bg-primary-foreground">
+          Getting things ready . . . <Rings height={50} color="red" />
+        </div>
+      )}
     </main>
   );
 
