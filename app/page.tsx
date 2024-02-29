@@ -31,6 +31,7 @@ import { drawOnCanvas } from "@/utils/draw";
 type Props = {};
 
 let interval: any = null;
+let stopTimeout: any = null;
 
 const HomePage = (props: Props) => {
   const webcamRef = useRef<Webcam>(null);
@@ -43,6 +44,35 @@ const HomePage = (props: Props) => {
   const [volume, setVolume] = useState<number>(0.8);
   const [model, setModel] = useState<ObjectDetection>();
   const [loading, setLoading] = useState<boolean>(false);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+
+  //inital ze the mdeia recorder
+  useEffect(() => {
+    if (webcamRef && webcamRef.current) {
+      const stream = (webcamRef.current.video as any).captureStream();
+      if (stream) {
+        mediaRecorderRef.current = new MediaRecorder(stream);
+        mediaRecorderRef.current.ondataavailable = (e) => {
+          if (e.data.size > 0) {
+            const recordedBlob = new Blob([e.data], { type: "video/mp4" });
+            const videoURL = URL.createObjectURL(recordedBlob);
+
+            const a = document.createElement("a");
+            a.href = videoURL;
+            a.download = `video-${Date.now()}.mp4`;
+            a.click();
+          }
+        };
+        mediaRecorderRef.current.onstop = (e) => {
+          setIsRecording(false);
+        };
+        mediaRecorderRef.current.onstart = (e) => {
+          setIsRecording(true);
+        };
+      }
+    }
+  }, [webcamRef]);
 
   useEffect(() => {
     setLoading(true);
@@ -201,11 +231,37 @@ const HomePage = (props: Props) => {
   }
 
   function userPromptRecord() {
-    //check if recording
-    //then stop recording
-    //and save to downloads
-    //if not recording
-    //start recording
+    if (!webcamRef.current) {
+      toast("Camera is not found. Please refresh.");
+    }
+
+    if (mediaRecorderRef.current?.state == "recording") {
+      // check if recording
+      // then stop recording
+      // and save to downloads
+      mediaRecorderRef.current.requestData();
+      //  clearTimeout(stopTimeout);
+      mediaRecorderRef.current.stop();
+      toast("Recording saved to downloads");
+    } else {
+      // if not recording
+      // start recording
+      startRecording(false);
+    }
+  }
+
+  function startRecording(doBeep: boolean) {
+    if (webcamRef.current && mediaRecorderRef.current?.state !== "recording") {
+      mediaRecorderRef.current?.start();
+      doBeep && beep(volume);
+
+      stopTimeout = setTimeout(() => {
+        if (mediaRecorderRef.current?.state === "recording") {
+          mediaRecorderRef.current.requestData();
+          mediaRecorderRef.current.stop();
+        }
+      }, 30000);
+    }
   }
 
   function toggleAutoRecord() {
