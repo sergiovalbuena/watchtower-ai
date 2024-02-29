@@ -18,14 +18,15 @@ import {
   Video,
   Volume2,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import { Rings } from "react-loader-spinner";
 import Webcam from "react-webcam";
 import { toast } from "sonner";
 import * as cocossd from "@tensorflow-models/coco-ssd";
 import "@tensorflow/tfjs-backend-cpu";
 import "@tensorflow/tfjs-backend-webgl";
-import { ObjectDetection } from "@tensorflow-models/coco-ssd";
+import { DetectedObject, ObjectDetection } from "@tensorflow-models/coco-ssd";
+import { drawOnCanvas } from "@/utils/draw";
 
 type Props = {};
 
@@ -36,7 +37,7 @@ const HomePage = (props: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   //states
-  const [mirrored, setMirrored] = useState<boolean>(false);
+  const [mirrored, setMirrored] = useState<boolean>(true);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [autoRecordEnabled, setAutoRecordEnabled] = useState<boolean>(false);
   const [volume, setVolume] = useState<number>(0.8);
@@ -70,8 +71,12 @@ const HomePage = (props: Props) => {
       webcamRef.current.video &&
       webcamRef.current.video.readyState === 4
     ) {
-      const predictions = await model.detect(webcamRef.current.video);
-      console.log(predictions);
+      const predictions: DetectedObject[] = await model.detect(
+        webcamRef.current.video
+      );
+      //console.log(predictions);
+      resizeCanvas(canvasRef, webcamRef);
+      drawOnCanvas(mirrored, predictions, canvasRef.current?.getContext("2d"));
     }
   }
 
@@ -81,7 +86,7 @@ const HomePage = (props: Props) => {
       runPrediction();
     }, 1000);
     return () => clearInterval(interval);
-  }, [webcamRef.current, model]);
+  }, [webcamRef.current, model, mirrored]);
 
   return (
     <main>
@@ -318,3 +323,16 @@ const HomePage = (props: Props) => {
 };
 
 export default HomePage;
+function resizeCanvas(
+  canvasRef: RefObject<HTMLCanvasElement>,
+  webcamRef: RefObject<Webcam>
+) {
+  const canvas = canvasRef.current;
+  const video = webcamRef.current?.video;
+
+  if (canvas && video) {
+    const { videoWidth, videoHeight } = video;
+    canvas.width = videoWidth;
+    canvas.height = videoHeight;
+  }
+}
