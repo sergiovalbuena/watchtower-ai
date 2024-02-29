@@ -29,6 +29,8 @@ import { ObjectDetection } from "@tensorflow-models/coco-ssd";
 
 type Props = {};
 
+let interval: any = null;
+
 const HomePage = (props: Props) => {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -61,17 +63,37 @@ const HomePage = (props: Props) => {
     }
   }, [model]);
 
+  async function runPrediction() {
+    if (
+      model &&
+      webcamRef.current &&
+      webcamRef.current.video &&
+      webcamRef.current.video.readyState === 4
+    ) {
+      const predictions = await model.detect(webcamRef.current.video);
+      console.log(predictions);
+    }
+  }
+
+  //set interval to check for objects
+  useEffect(() => {
+    interval = setInterval(() => {
+      runPrediction();
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [webcamRef.current, model]);
+
   return (
     <main>
       <div className="flex h-screen">
         {/* left division - webcam & canvas */}
         <div className="relative">
           <div className="relative h-screen w-full">
-            {/* <Webcam
+            <Webcam
               ref={webcamRef}
               mirrored={mirrored}
               className="h-full w-full object-contain p-2"
-            /> */}
+            />
             <canvas
               ref={canvasRef}
               className="absolute top-0 left-0 h-full w-full object-contain"
